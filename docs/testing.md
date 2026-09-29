@@ -4,6 +4,7 @@
 
 | Version | Commit | Platform |
 | --- | --- | --- |
+| 3.22.12 | `3a92974361033b2051526321308c2740fe5912c0` | Windows x64 |
 | 3.22.9 | `2ca0f45baa06796a86f6c6ba2b9bedacaf94c370` | Windows x64 |
 | 3.22.5 | `a00aa8754ab5bae70b637d98e126f9dbd4e1e5d0` | Windows x64 |
 | 3.21.18 | `c4730f7d93d787d9ab120af715999f0345ee5bc0` | Windows x64 |
@@ -62,6 +63,10 @@ Verified without touching an installation, against copies of the original 3.22.9
 - a dry run on a copy of a real configuration, with `ssh -G` used to confirm that OpenSSH parses the result, attaches the three forwards to a configured host and leaves an unrelated host without any.
 
 Not yet confirmed: a live remote turn. The host's own runtime under `~/.cursor-server` is unpatched, so reasoning effort forwarding and the subagent model repairs are missing there.
+
+## Cursor 3.22.12 update
+
+Cursor 3.22.12 renamed 30 of the 50 derived symbols on each surface and changed nothing the patches anchor to. The extractor now lives in the repository as `scripts/derive-symbols.mjs`, which is how this port started: it reproduced every reviewed 3.22.9 value before it was used here. Both runtime bundles needed no change. All automated checks pass and the three patches were installed together on a local 3.22.12. Live model selection, tool calls, file edits, remote SSH and attachment workflows have not been confirmed on this build.
 
 ## Cursor 3.22.9 update
 
