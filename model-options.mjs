@@ -9,7 +9,10 @@ export function modelOptions(catalog) {
     const extended=/\[1m\]$/i.test(row.value)||/\[1m\]$/i.test(row.resolvedModel)||/^claude-(?:sonnet-5|fable-5)(?:-|$)/.test(resolved);
     const existing=grouped.get(value);
     if(existing){existing.extended ||= extended;continue;}
-    const label=(row.description.split(' · ')[0]||row.displayName).replace(/\s+with 1M context/i,'').replace(/\s*\(1M context\)/i,'');
+    // Older CLIs put the name in front of the description ("Opus 4.8 · Best
+    // for …"); newer ones keep the description plain and name it in displayName.
+    const named=row.description?.includes(' · ')?row.description.split(' · ')[0]:'';
+    const label=(named||row.displayName).replace(/\s+with 1M context/i,'').replace(/\s*\(1M context\)/i,'');
     const family=resolved.match(/claude-(opus|sonnet|fable|haiku)/)?.[1];
     const descriptions={
       opus:'Deep reasoning for complex code, architecture decisions, and difficult debugging.',
