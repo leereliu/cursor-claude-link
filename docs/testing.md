@@ -4,6 +4,7 @@
 
 | Version | Commit | Platform |
 | --- | --- | --- |
+| 3.24.12 | `37b865941ccb31e2fc90c685157534efca87f960` | Windows x64 |
 | 3.22.12 | `3a92974361033b2051526321308c2740fe5912c0` | Windows x64 |
 | 3.22.9 | `2ca0f45baa06796a86f6c6ba2b9bedacaf94c370` | Windows x64 |
 | 3.22.5 | `a00aa8754ab5bae70b637d98e126f9dbd4e1e5d0` | Windows x64 |
@@ -63,6 +64,10 @@ Verified without touching an installation, against copies of the original 3.22.9
 - a dry run on a copy of a real configuration, with `ssh -G` used to confirm that OpenSSH parses the result, attaches the three forwards to a configured host and leaves an unrelated host without any.
 
 Not yet confirmed: a live remote turn. The host's own runtime under `~/.cursor-server` is unpatched, so reasoning effort forwarding and the subagent model repairs are missing there.
+
+## Cursor 3.24.12 update
+
+Cursor 3.24.12 (3.23 was skipped) is the first build supported through its symbol table alone: `symbols-<version>.json` and `build-<version>.json`, applied by `patches-workbench.mjs` and the shared `install-build.mjs`. The workbench module reproduced the reviewed 3.22.12 installer output byte for byte before it was used here; the builds up to 3.22.12 keep their own installers. The release changed more than names: the model picker went through the React compiler, so the subscription sections now go into a memoized fragment that is rebuilt while they exist; the run gate no longer passes `localMode` in its options; both runtime bundles ship native `??`, `?.`, async functions and object spreads; the two protobuf messages the action manager uses were renamed (`QF` to `QFf`, `RG` to `RGk`) and are now found by their role; and the engine's run parameters rotated. All automated checks pass, and the patch was checked on top of cursor-gpt-link and under cursor-mercury-link in Mercury's combined scenario. Live model selection, tool calls, file edits, remote SSH and attachment workflows have not been confirmed on this build.
 
 ## Cursor 3.22.12 update
 

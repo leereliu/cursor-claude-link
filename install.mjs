@@ -1,7 +1,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import {cursorRoot} from './build-support.mjs';
+import {cursorRoot, isSupportedVersion} from './build-support.mjs';
 const root=cursorRoot();
 const version=process.argv.includes('--restore')?JSON.parse(fs.readFileSync(new URL('./installed.json',import.meta.url),'utf8')).version:JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8')).version;
-if(!['3.20.7','3.20.11','3.20.17','3.20.21','3.20.23','3.21.1','3.21.9','3.21.12','3.21.13','3.21.16','3.21.18','3.22.5','3.22.9','3.22.12'].includes(version))throw new Error('Unsupported Cursor version: '+version);
-await import('./install-'+version+'.mjs');
+// Builds up to 3.22.12 have an installer of their own; later ones share one.
+const own=new URL('./install-'+version+'.mjs',import.meta.url);
+if(fs.existsSync(own))await import(own);
+else if(isSupportedVersion(version))await import('./install-build.mjs');
+else throw new Error('Unsupported Cursor version: '+version);

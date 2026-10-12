@@ -16,10 +16,22 @@ export function linkedGptManifests() {
   return [...new Set([path.join(os.homedir(),'cursor-chatgpt-bridge/installed.json'),
     path.join(process.env.CURSOR_GPT_LINK_HOME||path.join(process.env.LOCALAPPDATA||os.homedir(),'cursor-gpt-link'),'installed.json')])];
 }
+// Builds up to 3.22.12 have an installer of their own and are listed here. From
+// 3.24.12 a build is supported when its reviewed files exist: the hashes in
+// build-<version>.json and the symbols in symbols-<version>.json.
+const legacyBuilds=['3.20.7','3.20.11','3.20.17','3.20.21','3.20.23','3.21.1','3.21.9','3.21.12','3.21.13','3.21.16','3.21.18','3.22.5','3.22.9','3.22.12'];
+export function isSupportedVersion(version){
+  return legacyBuilds.includes(version)||
+    (fs.existsSync(new URL('./build-'+version+'.json',import.meta.url))&&fs.existsSync(new URL('./symbols-'+version+'.json',import.meta.url)));
+}
+export function symbolsFor(version){
+  const file=new URL('./symbols-'+version+'.json',import.meta.url);
+  return fs.existsSync(file)?JSON.parse(fs.readFileSync(file,'utf8')):undefined;
+}
 export function getBuild(root) {
   if(process.platform!=='win32'||process.arch!=='x64')throw new Error('Only Windows x64 clients are supported.');
   const version=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8')).version;
-  if(!['3.20.7','3.20.11','3.20.17','3.20.21','3.20.23','3.21.1','3.21.9','3.21.12','3.21.13','3.21.16','3.21.18','3.22.5','3.22.9','3.22.12'].includes(version))throw new Error('Unsupported Cursor version: '+version);
+  if(!isSupportedVersion(version))throw new Error('Unsupported Cursor version: '+version);
   const build=JSON.parse(fs.readFileSync(new URL('./build-'+version+'.json',import.meta.url),'utf8'));
   if(JSON.parse(fs.readFileSync(path.join(root,'product.json'),'utf8')).commit!==build.commit)throw new Error('Unsupported Cursor commit.');
   return build;
