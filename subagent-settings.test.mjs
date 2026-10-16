@@ -8,7 +8,7 @@ const selection={subagentType:'explore',selection:{case:'model',value:{modelId:c
 test('Explore model selection is available locally without changing Default, Inherit or Disabled',()=>{
  const original=['native'];
  assert.deepEqual(selectedModelIds(original,[selection],parent),['native',child]);
- assert.deepEqual(selectedModelIds(original,[{...selection,selection:{case:'model',value:{modelId:'another-provider/model'}}}],parent),['native','another-provider/model']);
+ assert.deepEqual(selectedModelIds(original,[{...selection,selection:{case:'model',value:{modelId:'another-provider/model'}}}],parent),['native']);
  for(const mode of ['default','inherit','disabled'])assert.deepEqual(selectedModelIds(original,[{selection:{case:mode}}],parent),original);
  assert.strictEqual(selectedModelIds(original,[selection],'ordinary'),original);
  assert.deepEqual(original,['native']);

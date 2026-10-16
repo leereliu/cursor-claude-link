@@ -169,9 +169,12 @@ test('autostart restarts only the Claude bridge worker',()=>{
   assert.match(src,/\[\[:space:\]\]/);
   assert.equal(src.includes('\\s'),false);
   assert.match(src,/process\.platform==="darwin"/);
-  assert.equal(src.includes('powershell'),false);
-  assert.equal(src.includes('windowsHide'),false);
-  assert.equal(src.includes('win32'),false);
+  assert.match(src,/process\.platform==="win32"/);
+  assert.match(src,/windowsHide:true/);
+  const encoded=src.match(/EncodedCommand","([^"]+)/)[1];
+  const decoded=Buffer.from(encoded,'base64').toString('utf16le');
+  assert.match(decoded,/cursor-claude-link/);
+  assert.equal(decoded.includes('Get-NetTCPConnection'),false);
   assert.equal(src.includes('cursor-gpt-link'),false);
 });
 test('installer rejects non-macOS Apple Silicon clients',async()=>{
@@ -184,7 +187,7 @@ test('installer rejects non-macOS Apple Silicon clients',async()=>{
     if(Number.isFinite(major)&&major>=26)assert.doesNotThrow(()=>assertSupportedClient(build));
     else assert.throws(()=>assertSupportedClient(build),/macOS 26\+/);
   }else{
-    assert.throws(()=>assertSupportedClient(build),/macOS 26\+/);
+    assert.throws(()=>assertSupportedClient(build),/macOS 26\+|Unsupported client/);
   }
 });
 
@@ -227,4 +230,8 @@ test('picker separates standard and extended limits while runtime retains provid
   assert.equal(model.contextTokenLimitForMaxMode,maximum);
   assert.equal(provider.find(p=>p.id===model.name).capabilities.context_length,maximum);
  }
+});
+
+test('provider context compatibility fields agree',()=>{
+  for(const entry of providerModels(catalog))assert.equal(entry.context_window,entry.capabilities.context_length);
 });

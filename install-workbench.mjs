@@ -76,7 +76,7 @@ export function writePatchedFiles({root, pending, version}) {
   }
 }
 
-function patchWorkbenchSurface(source, surfaceName, anchors, features, prefix, version, workbenchPrelude) {
+export function patchWorkbenchSurface(source, surfaceName, anchors, features, prefix, version, workbenchPrelude) {
   const surface = anchors[surfaceName];
   source = workbenchPrelude + source;
   source = patchPickerSections(source, once, surface.picker);

@@ -3,7 +3,7 @@
 export function selectedModelIds(existing, overrides, parentModelId) {
   if(!parentModelId?.startsWith('claude-subscription/'))return existing;
   const selected=(overrides??[]).filter(o=>o.subagentType==='explore'&&o.selection?.case==='model')
-    .map(o=>o.selection.value?.modelId).filter(id=>typeof id==='string'&&id.trim()&&id!=='default');
+    .map(o=>o.selection.value?.modelId).filter(id=>typeof id==='string'&&id.trim()&&id!=='default'&&id.startsWith('claude-subscription/'));
   return [...new Set([...existing,...selected])];
 }
 export function configureTaskProps(input, props) {

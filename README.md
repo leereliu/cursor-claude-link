@@ -1,5 +1,7 @@
 # cursor-claude-link
 
+This fork combines the latest vertexitde upstream with Artic0din's macOS, local tool handoff, Agent Host routing, recovery, and usage-label fixes. Windows support remains intact. The imported macOS installer targets Cursor 3.22.12 on macOS 26+ Apple Silicon. **[整合记录与验证范围](INTEGRATION.md)** lists source commits, conflict resolutions, and the separate early prototype branch. The upstream README follows.
+
 An experimental patch that adds your Claude Code models to Cursor and uses your existing Claude subscription sign-in. Cursor keeps its agent harness, tools and approval controls. No extension is installed.
 
 Companion project: [cursor-gpt-link](https://github.com/vertexitde/cursor-gpt-link).

@@ -4,9 +4,11 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {macosMajorVersion,machineArch} from './macos.mjs';
+const supportedMac=process.platform==='darwin'&&machineArch()==='arm64'&&macosMajorVersion()>=26;
 import {getBuild, linkedGptManifests, overlayLinkedGptOriginals, readExistingManifest, requireSupportedOriginals, restoreInstalledFiles, sha256} from './build-support.mjs';
 
-test('default companion discovery uses the macOS application-support directory', () => {
+test('default companion discovery uses the macOS application-support directory', {skip:process.platform!=='darwin'}, () => {
   const previous=process.env.CURSOR_GPT_LINK_HOME;
   delete process.env.CURSOR_GPT_LINK_HOME;
   try {
@@ -19,14 +21,14 @@ test('default companion discovery uses the macOS application-support directory',
   }
 });
 
-test('the retired 3.21.12 build remains unsupported', t => {
+test('the retired 3.21.12 Mac build remains unsupported', {skip:process.platform!=='darwin'}, t => {
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'claude-build-test-'));
   t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
   fs.writeFileSync(path.join(root,'package.json'),JSON.stringify({version:'3.21.12'}));
-  assert.throws(()=>getBuild(root),/Unsupported Cursor version/);
+  assert.throws(()=>getBuild(root),/Unsupported Cursor version|no reviewed macOS installer/);
 });
 
-test('the original macOS 3.22.12 build is accepted and another commit is rejected', {skip:process.platform!=='darwin'}, t => {
+test('the original macOS 3.22.12 build is accepted and another commit is rejected', {skip:!supportedMac}, t => {
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'claude-current-build-'));
   t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
   fs.writeFileSync(path.join(root,'package.json'),JSON.stringify({version:'3.22.12'}));
@@ -44,14 +46,14 @@ test('unknown Cursor versions remain unsupported', t => {
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'claude-unknown-build-'));
   t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
   fs.writeFileSync(path.join(root,'package.json'),JSON.stringify({version:'9.9.9'}));
-  assert.throws(()=>getBuild(root),/Unsupported Cursor version/);
+  assert.throws(()=>getBuild(root),/Unsupported Cursor version|no reviewed macOS installer/);
 });
 
-test('3.20.17 is not an install target', t => {
+test('3.20.17 is not a Mac install target', {skip:process.platform!=='darwin'}, t => {
   const root=fs.mkdtempSync(path.join(os.tmpdir(),'claude-old-build-'));
   t.after(()=>fs.rmSync(root,{recursive:true,force:true}));
   fs.writeFileSync(path.join(root,'package.json'),JSON.stringify({version:'3.20.17'}));
-  assert.throws(()=>getBuild(root),/Unsupported Cursor version/);
+  assert.throws(()=>getBuild(root),/Unsupported Cursor version|no reviewed macOS installer/);
 });
 
 test('combined installation cannot pass the preflight that archives stale Claude state', t=>{
@@ -61,7 +63,7 @@ test('combined installation cannot pass the preflight that archives stale Claude
   t.after(()=>{if(previous===undefined)delete process.env.CURSOR_GPT_LINK_HOME;else process.env.CURSOR_GPT_LINK_HOME=previous;fs.rmSync(dir,{recursive:true,force:true});});
   process.env.CURSOR_GPT_LINK_HOME=state;
   fs.mkdirSync(root,{recursive:true});fs.mkdirSync(state);
-  const build=JSON.parse(fs.readFileSync(new URL('./build-3.22.12.json',import.meta.url),'utf8'));
+  const build=JSON.parse(fs.readFileSync(new URL('./build-3.22.12'+(process.platform==='darwin'?'-darwin-arm64':'')+'.json',import.meta.url),'utf8'));
   fs.writeFileSync(path.join(root,'package.json'),JSON.stringify({version:build.version}));
   const files=Object.entries(build.files).map(([relative,originalHash])=>{
     const file=path.join(root,relative);
@@ -72,11 +74,12 @@ test('combined installation cannot pass the preflight that archives stale Claude
   const manifestPath=path.join(state,'installed.json');
   fs.writeFileSync(manifestPath,JSON.stringify({files,claudeManifest:path.join(dir,'installed.json')}));
   assert.throws(()=>overlayLinkedGptOriginals(root,build),/Restore Claude before reinstalling/);
-  if(process.platform==='darwin')assert.throws(()=>requireSupportedOriginals(root),/Restore Claude before reinstalling/);
+  if(supportedMac)assert.throws(()=>requireSupportedOriginals(root),/Restore Claude before reinstalling/);
   fs.writeFileSync(manifestPath,JSON.stringify({files}));
   const expected=overlayLinkedGptOriginals(root,build);
+  if(process.platform==='win32')assert.deepEqual(overlayLinkedGptOriginals(root.toUpperCase(),build),expected);
   for(const file of files)assert.equal(expected[path.relative(root,file.path).split(path.sep).join('/')],file.patchedHash);
-  if(process.platform==='darwin')assert.equal(requireSupportedOriginals(root).version,build.version);
+  if(supportedMac)assert.equal(requireSupportedOriginals(root).version,build.version);
   const stamped=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
   stamped.claudeManifest=path.join(dir,'installed.json');
   fs.writeFileSync(manifestPath,JSON.stringify(stamped));
@@ -96,14 +99,14 @@ test('leftover 3.20.17 uninstall reads the manifest without getBuild', t=>{
   fs.writeFileSync(manifestPath,JSON.stringify(manifest));
   const loaded=readExistingManifest(root,manifestPath);
   assert.equal(loaded.version,'3.20.17');
-  assert.throws(()=>getBuild(root),/Unsupported Cursor version/);
+  if(process.platform==='darwin')assert.throws(()=>getBuild(root),/no reviewed macOS installer/);
   restoreInstalledFiles(loaded);
   assert.equal(fs.readFileSync(file,'utf8'),'original');
 });
 
 test('the macOS wrapper restores from the existing manifest without getBuild', () => {
   const dir=path.dirname(fileURLToPath(import.meta.url));
-  const source=fs.readFileSync(path.join(dir,'install.mjs'),'utf8');
+  const source=fs.readFileSync(path.join(dir,'install-macos.mjs'),'utf8');
   assert.equal(source.includes('getBuild('),false);
   assert.match(source,/readExistingManifest\(root,\s*manifestPath\)/);
   assert.match(source,/restoreInstalledFiles\(manifest\)/);
@@ -170,7 +173,7 @@ test('restore rethrows non-ENOENT linked GPT write errors', t=>{
   const blocked=path.join(dir,'gpt-dir');
   fs.mkdirSync(blocked);
   assert.throws(()=>restoreInstalledFiles({files,linked:[{path:blocked,original:'{}'}]}),{code:'EISDIR'});
-  if(typeof process.getuid==='function'&&process.getuid()===0)return;
+  if(process.platform==='win32'||(typeof process.getuid==='function'&&process.getuid()===0))return;
   const denied=path.join(dir,'gpt-denied.json');
   fs.writeFileSync(denied,'x');
   fs.chmodSync(denied,0o444);

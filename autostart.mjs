@@ -12,16 +12,20 @@ export function buildBridgeLauncher({nodePath, bridgePath, stateDir}) {
   // Restart only this installation's worker. The pattern is passed as an
   // argument to pkill (no shell), matching cursor-gpt-link.
   const pattern = bridgeCommandPosixPattern(nodePath, bridgePath);
+  const windowsPattern=bridgeCommandPattern(nodePath,bridgePath).replaceAll("'", "''");
+  const restart=`Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -match '${windowsPattern}' } | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }`;
+  const encoded=Buffer.from(restart,'utf16le').toString('base64');
   return `
 const {execFile,spawn}=require("node:child_process");
 const start=()=>{
   const worker=spawn(${JSON.stringify(nodePath)},[${JSON.stringify(bridgePath)}],{
-    detached:true,stdio:["ignore","ignore",2],
+    detached:true,windowsHide:true,stdio:["ignore","ignore",2],
     env:{...process.env,ELECTRON_RUN_AS_NODE:undefined,...${JSON.stringify(stateDir?{CURSOR_CLAUDE_LINK_HOME:stateDir}:{})}}
   });
   worker.on("error",error=>console.error("Local bridge startup failed:",error.message));worker.unref();
 };
-if(process.platform==="darwin")execFile("pkill",["-f",${JSON.stringify(pattern)}],{timeout:5000},error=>{
+if(process.platform==="win32")execFile("powershell.exe",["-NoProfile","-NonInteractive","-EncodedCommand",${JSON.stringify(encoded)}],{windowsHide:true,timeout:15000},()=>start());
+else if(process.platform==="darwin")execFile("pkill",["-f",${JSON.stringify(pattern)}],{timeout:5000},error=>{
   if(error&&error.code!==1){console.error("Local bridge restart failed:",error.message);return;}start();
 });
 else start();
@@ -40,7 +44,7 @@ import("node:child_process").then(async({spawn})=>{
   const log=fs.openSync(path.join(state,"bridge-startup.log"),"a",0o600);fs.fchmodSync(log,0o600);
   try{
   const launcher=spawn(${JSON.stringify(options.nodePath)},["-e",${JSON.stringify(buildBridgeLauncher(options))}],{
-    detached:true,stdio:["ignore","ignore",log],
+    detached:true,windowsHide:true,stdio:["ignore","ignore",log],
     env:{...process.env,ELECTRON_RUN_AS_NODE:undefined}
   });
   await new Promise((resolve,reject)=>{launcher.once("spawn",resolve);launcher.once("error",reject);});launcher.unref();

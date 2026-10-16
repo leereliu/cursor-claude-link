@@ -6,7 +6,7 @@
   "description": "Use local Claude Code subscription models in the Cursor agent harness",
   "scripts": {
     "doctor": "node doctor.mjs",
-    "test": "node --test test.mjs ssh-forwarding.test.mjs usage-label.test.mjs bridge.test.mjs attachments.test.mjs token-usage.test.mjs subagent-bubbles.test.mjs autostart.test.mjs subagent-settings.test.mjs subagent-lifecycle.test.mjs conversation-actions.test.mjs model-options.test.mjs",
+    "test": "node scripts/test-all.mjs",
     "test:live": "node live-test.mjs",
     "install:patch": "node patcher.mjs install",
     "uninstall": "node patcher.mjs restore",
@@ -21,7 +21,8 @@
     "check:subagents": "node scripts/check-subagents.mjs",
     "check:actions": "node scripts/check-conversation-actions.mjs",
     "check:ui": "node scripts/check-ui.mjs",
-    "install:remote": "node scripts/install-remote.mjs"
+    "install:remote": "node scripts/install-remote.mjs",
+    "check:macos-source": "node scripts/check-macos-source.mjs"
   },
   "engines": {
     "node": ">=22"
@@ -29,9 +30,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/vertexitde/cursor-claude-link.git"
+    "url": "https://github.com/leereliu/cursor-claude-link.git"
   },
   "bugs": {
-    "url": "https://github.com/vertexitde/cursor-claude-link/issues"
+    "url": "https://github.com/leereliu/cursor-claude-link/issues"
   }
 }

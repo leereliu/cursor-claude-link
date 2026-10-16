@@ -2,7 +2,7 @@
 // build-*.json can be refreshed for the exact installed build.
 // Run on a Mac with an unmodified Cursor installation and macOS 26+:
 //   node scripts/capture-hashes.mjs "/Applications/Cursor.app/Contents/Resources/app"
-// Copy the printed object into the matching build-*.json file,
+// Copy the printed object into the matching build-<version>-darwin-arm64.json file,
 // keeping platform "darwin", arch "arm64" and osMinimum "26.0".
 import fs from 'node:fs';
 import path from 'node:path';

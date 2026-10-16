@@ -1,3 +1,4 @@
+import {verifySubagentSettings} from './subagent-settings-check.mjs';
 import {verifySubagentLifecycle} from './subagent-lifecycle-check.mjs';
 import {verifySubagentModels} from './subagent-model-check.mjs';
 import fs from 'node:fs';
@@ -12,4 +13,7 @@ for(const surface of ['desktop','glass']){
  console.log(surface+': Claude subagent registration passed.');
 }
 
-for(const name of ['cursor-agent-exec','cursor-local-agent-runtime'])await verifySubagentModels(fs.readFileSync(path.join(root,'extensions',name,'dist/main.js'),'utf8'));
+for(const name of ['cursor-agent-exec','cursor-local-agent-runtime']){
+ const source=fs.readFileSync(path.join(root,'extensions',name,'dist/main.js'),'utf8');
+ await verifySubagentModels(source);verifySubagentSettings(source);
+}

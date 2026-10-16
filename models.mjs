@@ -40,6 +40,6 @@ export function pickerModels(catalog) {
 }
 
 export function providerModels(catalog) {
-  return pickerModels(catalog).map(m=>({id:m.name,object:'model',owned_by:'anthropic',api_types:['openai_responses'],
+  return pickerModels(catalog).map(m=>({id:m.name,object:'model',owned_by:'anthropic',context_window:m.contextTokenLimitForMaxMode??m.contextTokenLimit,api_types:['openai_responses'],
     capabilities:{context_length:m.contextTokenLimitForMaxMode??m.contextTokenLimit,supports_vision:m.supportsImages,supports_reasoning:m.supportsThinking}}));
 }

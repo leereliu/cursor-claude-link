@@ -13,7 +13,9 @@ test('signing and resource restoration preserve hardened runtime and entitlement
   const executable = path.join(app, 'Contents/MacOS/Cursor');
   fs.mkdirSync(root, {recursive:true});
   fs.mkdirSync(path.dirname(executable), {recursive:true});
-  fs.copyFileSync('/usr/bin/true', executable);
+  const fixtureSource=path.join(dir,'fixture.c');
+  fs.writeFileSync(fixtureSource,'int main(void) { return 0; }\n');
+  execFileSync('/usr/bin/clang',[fixtureSource,'-o',executable],{stdio:'pipe'});
   fs.chmodSync(executable, 0o755);
   fs.writeFileSync(path.join(app, 'Contents/Info.plist'), '<?xml version="1.0"?><plist version="1.0"><dict><key>CFBundleExecutable</key><string>Cursor</string><key>CFBundleIdentifier</key><string>test.cursor.signing</string><key>CFBundlePackageType</key><string>APPL</string></dict></plist>');
   const entitlements = path.join(dir, 'entitlements.plist');

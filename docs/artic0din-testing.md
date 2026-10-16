@@ -1,3 +1,5 @@
+> Historical report from Artic0din/cursor-claude-link at b4f0b7c. These are the source fork author's results, not validation of this combined fork or this machine.
+
 # Testing and compatibility
 
 ## Verified macOS build

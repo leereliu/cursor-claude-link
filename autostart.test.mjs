@@ -8,7 +8,7 @@ import {once} from 'node:events';
 import {buildAutostart} from './autostart.mjs';
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const alive=pid=>{try{process.kill(pid,0);return true;}catch{return false;}};
-for(const seeded of [false,true]) test('autostart survives host exit: '+(seeded?'replace worker':'cold start'), {skip:process.platform!=='darwin',timeout:30000}, async()=>{
+for(const seeded of [false,true]) test('autostart survives host exit: '+(seeded?'replace worker':'cold start'), {skip:!['darwin','win32'].includes(process.platform),timeout:30000}, async()=>{
   const dir=fs.mkdtempSync(path.join(os.tmpdir(),'bridge-autostart-'));
   const worker=path.join(dir,'worker with spaces.mjs'), pidFile=path.join(dir,'pid.txt');
   fs.writeFileSync(worker,'import fs from "node:fs";fs.writeFileSync('+JSON.stringify(pidFile)+',String(process.pid));setTimeout(()=>process.exit(0),25000);');
