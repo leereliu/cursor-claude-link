@@ -62,7 +62,7 @@ npm run check:source
 npm run check:macos-source
 ```
 
-测试包括订阅路由、工具交接、provider 注册、Remote Control、组合恢复、原生签名 fixture、用量缓存和生命周期。GitHub Actions 同时覆盖 Windows 与 macOS 26，Node 22 与 24。
+测试包括订阅路由、工具交接、provider 注册、Remote Control、组合恢复、原生签名 fixture、用量缓存和生命周期。GitHub Actions 同时覆盖 Windows 与 macOS 26，Node 22、24 与 26，并提供手动运行入口。
 
 拥有匹配的原始 Cursor 3.22.12 资源时，可以执行只读的 JavaScript 检查：
 
